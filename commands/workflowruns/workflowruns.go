@@ -78,14 +78,14 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 4, 8, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tNAME\tEVENT\tSTATUS\tHEAD MESSAGE\tCREATED")
+		fmt.Fprintln(w, "ID\tNAME\tEVENT\tHEAD MESSAGE\tSTATUS\tCREATED")
 		for _, run := range runs {
 			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t\n",
 				*run.ID,
 				*run.Name,
 				*run.Event,
-				*run.Conclusion, // NOTE: Status is completed even if failure
 				subjectLineOfGitMsg(*run.HeadCommit.Message),
+				*run.Conclusion, // NOTE: Status is completed even if failure
 				run.CreatedAt.UTC().Format(time.UnixDate),
 			)
 			if err != nil {
