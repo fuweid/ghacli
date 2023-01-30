@@ -6,6 +6,7 @@ import (
 
 	"github.com/urfave/cli"
 
+	"github.com/fuweid/ghacli/commands/workflowruns"
 	"github.com/fuweid/ghacli/commands/workflows"
 )
 
@@ -33,6 +34,7 @@ func newCliApp() *cli.App {
 	}
 	app.Commands = append(app.Commands,
 		workflows.Command,
+		workflowruns.Command,
 	)
 	return app
 }

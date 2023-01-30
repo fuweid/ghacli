@@ -63,5 +63,5 @@ func listAllWorkflows(ctx context.Context, action *github.ActionsService, owner,
 		}
 		return workflows.Workflows, resp, nil
 	}
-	return commands.ListAllItems[*github.Workflow](ctx, handler)
+	return commands.ListAllItems[*github.Workflow](ctx, handler, 0)
 }

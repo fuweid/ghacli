@@ -33,8 +33,10 @@ func TargetRepo(cliCtx *cli.Context) (owner string, repo string) {
 }
 
 // ListAllItems is used to list items page by page.
-func ListAllItems[ItemType any](ctx context.Context,
+func ListAllItems[ItemType any](
+	ctx context.Context,
 	handler func(ctx context.Context, opt *github.ListOptions) ([]ItemType, *github.Response, error),
+	limit int, /* zero means unlimit */
 ) ([]ItemType, error) {
 
 	opt := &github.ListOptions{
@@ -49,6 +51,12 @@ func ListAllItems[ItemType any](ctx context.Context,
 		}
 
 		res = append(res, items...)
+
+		if limit > 0 && len(res) >= limit {
+			res = res[:limit]
+			break
+		}
+
 		if resp.NextPage == 0 {
 			break
 		}
