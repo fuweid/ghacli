@@ -53,6 +53,10 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 			Usage: "Max number of runs to be fetched",
 			Value: 100,
 		},
+		cli.StringSliceFlag{
+			Name:  "jobs",
+			Usage: "The job names in the workflow run. Show the usage for the jobs",
+		},
 	},
 	Action: func(cliCtx *cli.Context) error {
 		ctx, client, err := commands.NewGithubClient(cliCtx)
@@ -77,22 +81,66 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 				workflowID, err)
 		}
 
+		header := "ID\tNAME\tEVENT\tHEAD(MESSAGE)\tSTATUS"
+
+		jobNames := cliCtx.StringSlice("jobs")
+		for _, jobName := range jobNames {
+			header = fmt.Sprintf("%s\tJOB(%s)", header, jobName)
+		}
+		header = header + "\tCREATED"
+
 		w := tabwriter.NewWriter(os.Stdout, 4, 8, 2, ' ', 0)
-		fmt.Fprintln(w, "ID\tNAME\tEVENT\tHEAD MESSAGE\tSTATUS\tCREATED")
+		fmt.Fprintln(w, header)
 		for _, run := range runs {
-			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t\n",
+			status := *run.Status
+			if run.Conclusion != nil {
+				status = *run.Conclusion
+			}
+			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t",
 				*run.ID,
 				*run.Name,
 				*run.Event,
 				subjectLineOfGitMsg(*run.HeadCommit.Message),
-				*run.Conclusion, // NOTE: Status is completed even if failure
-				run.CreatedAt.UTC().Format(time.UnixDate),
+				status,
 			)
+			if err != nil {
+				return fmt.Errorf("failed to print result: %w", err)
+			}
+
+			if len(jobNames) > 0 {
+				jobs, err := listAllJobsForARun(ctx, client.Actions, owner, repo, *run.ID)
+				if err != nil {
+					return fmt.Errorf("failed to list jobs for run %s: %w", *run.ID, err)
+				}
+
+				hashJobs := make(map[string]time.Duration)
+				for _, job := range jobs {
+					if job.CompletedAt == nil {
+						continue
+					}
+					hashJobs[*job.Name] = job.CompletedAt.Sub((*job.StartedAt).Time)
+				}
+
+				for _, jobName := range jobNames {
+					du, ok := hashJobs[jobName]
+					if ok {
+						_, err = fmt.Fprintf(w, "%s\t", du)
+					} else {
+						_, err = fmt.Fprintf(w, "N/A\t")
+					}
+					if err != nil {
+						return fmt.Errorf("failed to print result: %w", err)
+					}
+				}
+			}
+
+			_, err = fmt.Fprintf(w, "%s\n", run.CreatedAt.UTC().Format(time.UnixDate))
 			if err != nil {
 				return fmt.Errorf("failed to print result: %w", err)
 			}
 		}
 		return w.Flush()
+
 	},
 }
 
@@ -122,6 +170,25 @@ func listAllWorkflowRuns(
 		return runs.WorkflowRuns, resp, nil
 	}
 	return commands.ListAllItems[*github.WorkflowRun](ctx, handler, limit)
+}
+
+func listAllJobsForARun(
+	ctx context.Context,
+	action *github.ActionsService,
+	owner, repo string, runID int64,
+) ([]*github.WorkflowJob, error) {
+	handler := func(ctx context.Context, pageOpt *github.ListOptions) ([]*github.WorkflowJob, *github.Response, error) {
+		filterOpt := &github.ListWorkflowJobsOptions{
+			ListOptions: *pageOpt,
+		}
+
+		jobs, resp, err := action.ListWorkflowJobs(ctx, owner, repo, runID, filterOpt)
+		if err != nil {
+			return nil, nil, err
+		}
+		return jobs.Jobs, resp, nil
+	}
+	return commands.ListAllItems[*github.WorkflowJob](ctx, handler, 0)
 }
 
 // subjectLineOfGitMsg limits message in 80 chars.
