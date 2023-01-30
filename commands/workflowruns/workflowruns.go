@@ -43,6 +43,11 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 			Usage: "Returns workflow runs created within the given date-time range. For more information on the syntax",
 			// https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates
 		},
+		cli.StringFlag{
+			Name:  "event",
+			Usage: "Returns workflow run triggered by the event you specify. For example, push, pull_request or issue.",
+			// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
+		},
 		cli.Uint64Flag{
 			Name:  "limit",
 			Usage: "Max number of runs to be fetched",
@@ -61,6 +66,7 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 		filterOpt := &github.ListWorkflowRunsOptions{
 			Created: cliCtx.String("created"),
 			Status:  cliCtx.String("status"),
+			Event:   cliCtx.String("event"),
 		}
 		limit := int(cliCtx.Uint64("limit"))
 
