@@ -40,11 +40,12 @@ var listCommand = cli.Command{
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 4, 8, 4, ' ', 0)
-		fmt.Fprintln(w, "ID\tNAME\tPATH\t")
+		fmt.Fprintln(w, "ID\tNAME\tSTATE\tPATH\t")
 		for _, workflow := range workflows {
-			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t\n",
+			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t\n",
 				*workflow.ID,
 				*workflow.Name,
+				*workflow.State,
 				*workflow.Path,
 			)
 			if err != nil {
