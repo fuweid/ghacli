@@ -48,6 +48,10 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 			Usage: "Returns workflow run triggered by the event you specify. For example, push, pull_request or issue.",
 			// https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows
 		},
+		cli.StringFlag{
+			Name:  "branch",
+			Usage: "Returns workflow runs associated with a branch. Use the name of the branch of the push.",
+		},
 		cli.Uint64Flag{
 			Name:  "limit",
 			Usage: "Max number of runs to be fetched",
@@ -68,6 +72,7 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 		workflowID := cliCtx.String("workflow-id")
 
 		filterOpt := &github.ListWorkflowRunsOptions{
+			Branch:  cliCtx.String("branch"),
 			Created: cliCtx.String("created"),
 			Status:  cliCtx.String("status"),
 			Event:   cliCtx.String("event"),
