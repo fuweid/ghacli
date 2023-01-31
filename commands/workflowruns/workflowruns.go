@@ -81,7 +81,7 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 				workflowID, err)
 		}
 
-		header := "ID\tNAME\tEVENT\tHEAD(MESSAGE)\tSTATUS"
+		header := "ID\tNAME\tEVENT\tHEAD(MESSAGE)\tSHA\tSTATUS"
 
 		jobNames := cliCtx.StringSlice("jobs")
 		for _, jobName := range jobNames {
@@ -96,11 +96,12 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 			if run.Conclusion != nil {
 				status = *run.Conclusion
 			}
-			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t",
+			_, err := fmt.Fprintf(w, "%d\t%s\t%s\t%s\t%s\t%s\t",
 				*run.ID,
 				*run.Name,
 				*run.Event,
 				subjectLineOfGitMsg(*run.HeadCommit.Message),
+				shortHeadSHA(*run.HeadSHA),
 				status,
 			)
 			if err != nil {
@@ -207,4 +208,12 @@ func subjectLineOfGitMsg(gitMsg string) string {
 		return msg
 	}
 	return msg[:limit]
+}
+
+func shortHeadSHA(SHA string) string {
+	short := 8
+	if len(SHA) <= short {
+		return SHA
+	}
+	return SHA[:short]
 }
