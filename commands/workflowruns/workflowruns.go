@@ -141,7 +141,7 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 				}
 			}
 
-			_, err = fmt.Fprintf(w, "%s\n", run.CreatedAt.UTC().Format(time.UnixDate))
+			_, err = fmt.Fprintf(w, "%s\n", run.CreatedAt.UTC().Format(time.RFC3339))
 			if err != nil {
 				return fmt.Errorf("failed to print result: %w", err)
 			}
