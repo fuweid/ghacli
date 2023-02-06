@@ -3,6 +3,7 @@ package workflowjobs
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strconv"
 	"text/tabwriter"
@@ -45,11 +46,20 @@ var downloadLogCommand = cli.Command{
 		}
 		owner, repo := commands.TargetRepo(cliCtx)
 
-		_, resp, err := client.Actions.GetWorkflowJobLogs(ctx, owner, repo, jobID, true)
+		url, _, err := client.Actions.GetWorkflowJobLogs(ctx, owner, repo, jobID, true)
 		if err != nil {
 			return fmt.Errorf("failed to locate job %v log: %w", jobID, err)
 		}
+
+		resp, err := http.Get(url.String())
+		if err != nil {
+			return fmt.Errorf("failed to GET %s: %w", url, err)
+		}
 		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			return fmt.Errorf("unexpected status code %v", resp.StatusCode)
+		}
 
 		_, err = io.Copy(os.Stdout, resp.Body)
 		if err != nil {
