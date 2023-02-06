@@ -36,7 +36,7 @@ var downloadLogCommand = cli.Command{
 		jobID, err := strconv.ParseInt(cliCtx.Args().First(), 10, 64)
 		if err != nil {
 			return fmt.Errorf("failed to parse %s into int64: %w",
-				cliCtx.Args().First(), jobID)
+				cliCtx.Args().First(), err)
 		}
 
 		ctx, client, err := commands.NewGithubClient(cliCtx)
