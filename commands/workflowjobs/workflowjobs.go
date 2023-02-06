@@ -24,8 +24,9 @@ var Command = cli.Command{
 }
 
 var downloadLogCommand = cli.Command{
-	Name:  "logs",
-	Usage: "Download a job's log",
+	Name:      "logs",
+	Usage:     "Download a job's log",
+	ArgsUsage: "WORKFLOW-JOB-ID",
 	Action: func(cliCtx *cli.Context) error {
 		if !cliCtx.Args().Present() {
 			return fmt.Errorf("job ID is required")
@@ -70,8 +71,9 @@ var downloadLogCommand = cli.Command{
 }
 
 var listJobsCommand = cli.Command{
-	Name:  "list",
-	Usage: "List workflow jobs with a given workflow run ID",
+	Name:      "list",
+	Usage:     "List workflow jobs with a given workflow run ID",
+	ArgsUsage: "WORKFLOW-RUN-ID",
 	Action: func(cliCtx *cli.Context) error {
 		if !cliCtx.Args().Present() {
 			return fmt.Errorf("run ID is required")
