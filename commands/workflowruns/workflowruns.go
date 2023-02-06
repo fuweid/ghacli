@@ -115,7 +115,7 @@ Returns workflow runs with the check run status or conclusion that you specify. 
 			}
 
 			if len(jobNames) > 0 {
-				jobs, err := listAllJobsForARun(ctx, client.Actions, owner, repo, *run.ID)
+				jobs, err := commands.ListAllJobsForARun(ctx, client.Actions, owner, repo, *run.ID)
 				if err != nil {
 					return fmt.Errorf("failed to list jobs for run %s: %w", *run.ID, err)
 				}
@@ -177,25 +177,6 @@ func listAllWorkflowRuns(
 		return runs.WorkflowRuns, resp, nil
 	}
 	return commands.ListAllItems[*github.WorkflowRun](ctx, handler, limit)
-}
-
-func listAllJobsForARun(
-	ctx context.Context,
-	action *github.ActionsService,
-	owner, repo string, runID int64,
-) ([]*github.WorkflowJob, error) {
-	handler := func(ctx context.Context, pageOpt *github.ListOptions) ([]*github.WorkflowJob, *github.Response, error) {
-		filterOpt := &github.ListWorkflowJobsOptions{
-			ListOptions: *pageOpt,
-		}
-
-		jobs, resp, err := action.ListWorkflowJobs(ctx, owner, repo, runID, filterOpt)
-		if err != nil {
-			return nil, nil, err
-		}
-		return jobs.Jobs, resp, nil
-	}
-	return commands.ListAllItems[*github.WorkflowJob](ctx, handler, 0)
 }
 
 // subjectLineOfGitMsg limits message in 80 chars.
